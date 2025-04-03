@@ -1,6 +1,6 @@
 # 👋 I'm CodesTyping
 
-![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%2336BCF7&lines=Welcome+to+my+GitHub+profile!;I'm+CodesTyping;I+love+coding+and+open-source!)
+![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%2336BCF7&lines=Zero+API!;I'm+CodesTyping!)
 
 Welcome to my GitHub profile!
 
