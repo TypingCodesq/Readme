@@ -28,29 +28,4 @@
 ![CodesTyping's GitHub stats](https://github-readme-stats.vercel.app/api?username=CodesTyping&show_icons=true&theme=radical)
 ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=CodesTyping&layout=compact&theme=radical)
 
-<style>
-  .animated-text {
-    font-size: 1.5em;
-    font-weight: bold;
-    text-align: center;
-    animation: color-change 3s infinite;
-  }
 
-  @keyframes color-change {
-    0% {
-      color: #3776AB;
-    }
-    25% {
-      color: #F7DF1E;
-    }
-    50% {
-      color: #3178C6;
-    }
-    75% {
-      color: #007396;
-    }
-    100% {
-      color: #3776AB;
-    }
-  }
-</style>
