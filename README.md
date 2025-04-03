@@ -1,11 +1,14 @@
-# 👋 I'm CodesTyping
+# 👋 Hi there, I'm CodesTyping!
 
 ![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%2336BCF7&lines=Zero+API!;I'm+CodesTyping!)
 
+<p style="text-align: center;">
+  <span class="animated-text">I love building APIs and coding in Python, JavaScript, Java, and TypeScript!</span>
+</p>
 
 ## 🚀 About Me
-- 💻 I enjoy working with various programming languages and technologies.
-- 🌱 Currently learning and exploring new technologies.
+- 💻 Working on zero api.
+- 🌱 All you need is love.
 
 ## 🛠️ Languages and Tools
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -25,3 +28,29 @@
 ![CodesTyping's GitHub stats](https://github-readme-stats.vercel.app/api?username=CodesTyping&show_icons=true&theme=radical)
 ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=CodesTyping&layout=compact&theme=radical)
 
+<style>
+  .animated-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    animation: color-change 3s infinite;
+  }
+
+  @keyframes color-change {
+    0% {
+      color: #3776AB;
+    }
+    25% {
+      color: #F7DF1E;
+    }
+    50% {
+      color: #3178C6;
+    }
+    75% {
+      color: #007396;
+    }
+    100% {
+      color: #3776AB;
+    }
+  }
+</style>
