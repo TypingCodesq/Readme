@@ -1,11 +1,30 @@
--- Get the HTTP Service
+-- This script must be placed in ServerScriptService or as a regular Script (not LocalScript)
+-- HTTP requests can only be executed from server scripts
+
 local HttpService = game:GetService("HttpService")
 
--- Get a response from the server (should probably use pcall)
-local response = HttpService:GetAsync("http://ip-api.com/json")
+-- Function to get server IP with error handling
+local function getServerIP()
+    local success, result = pcall(function()
+        local response = HttpService:GetAsync("http://ip-api.com/json")
+        local data = HttpService:JSONDecode(response)
+        return data.query
+    end)
+    
+    if success then
+        print("Server IP Address:", result)
+        return result
+    else
+        warn("Failed to get IP address:", result)
+        return nil
+    end
+end
 
--- Get the IP Address from the response
-local ipAddress = HttpService:JSONDecode(response).query
+-- Get and display the IP
+local ipAddress = getServerIP()
 
--- Display the IP Address
-print(ipAddress)
+-- Optional: Store the IP for later use
+if ipAddress then
+    -- You can use the IP address here for whatever you need
+    print("Successfully retrieved IP:", ipAddress)
+end
