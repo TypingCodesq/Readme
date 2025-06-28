@@ -1,13 +1,14 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local http = game:GetService("HttpService")
+
+-- Crear un RemoteEvent para enviar datos al cliente (opcional)
+local regionEvent = Instance.new("RemoteEvent")
+regionEvent.Name = "RegionEvent"
+regionEvent.Parent = ReplicatedStorage
+
 function GetServerRegion()
-    print("Iniciando GetServerRegion...") -- Punto de depuración 1
-    local http = game:GetService("HttpService")
-    if not http then
-        warn("HttpService no está disponible.")
-        return nil, nil
-    end
-    
+    print("Iniciando GetServerRegion...")
     local result
-    print("Intentando obtener IP...") -- Punto de depuración 2
     local success, errorMsg = pcall(function()
         result = http:JSONDecode(http:GetAsync("https://api4.my-ip.io/ip.json"))
     end)
@@ -19,13 +20,13 @@ function GetServerRegion()
 
     local ip = result and result.ip
     if ip then
-        print("Server IP: " .. tostring(ip)) -- Imprimir IP
+        print("Server IP: " .. tostring(ip))
     else
         warn("No se pudo obtener la IP. Resultado: " .. tostring(result or "nil"))
         return nil, nil
     end
     
-    print("Intentando obtener ubicación...") -- Punto de depuración 3
+    print("Intentando obtener ubicación...")
     if success and ip then
         local location
         local locationSuccess, locationError = pcall(function()
@@ -33,6 +34,8 @@ function GetServerRegion()
         end)
         if locationSuccess and location and location.region and location.regionName then
             print("Región: " .. location.region .. ", Nombre: " .. location.regionName)
+            -- Enviar al cliente (opcional)
+            regionEvent:FireAllClients(location.region, location.regionName)
             return location.region, location.regionName
         else
             warn("Error al obtener geo ubicación: " .. tostring(locationError or "Desconocido"))
@@ -44,7 +47,7 @@ function GetServerRegion()
     end
 end
 
--- Llamada a la función para probarla
+-- Llamar a la función al iniciar el servidor
 print("Llamando a GetServerRegion...")
 local region, regionName = GetServerRegion()
 print("Resultado: Región = " .. tostring(region) .. ", Nombre = " .. tostring(regionName))
