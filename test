@@ -1,32 +1,36 @@
 function GetServerRegion()
     local http = game:GetService("HttpService")
-    
-    local result
-    local g, b = pcall(function()
-        result = http:JSONDecode(http:GetAsync("https://api4.my-ip.io/ip.json"))
-    end)
-
-    local ip = result and result.ip
-    if ip then
-        print("Server IP: " .. tostring(ip))
-    else
-        warn("Failed to retrieve server IP. Error: " .. tostring(b))
+    if not http then
+        warn("HttpService is not available.")
         return nil, nil
     end
     
-    if g and ip then
+    local result
+    local success, errorMsg = pcall(function()
+        result = http:JSONDecode(http:GetAsync("https://api4.my-ip.io/ip.json"))
+    end)
+
+    local ip = success and result and result.ip
+    if ip then
+        print("Server IP: " .. tostring(ip))
+    else
+        warn("Failed to retrieve server IP. Error: " .. tostring(errorMsg or "Unknown"))
+        return nil, nil
+    end
+    
+    if success and ip then
         local location
-        local good, bad = pcall(function()
+        local locationSuccess, locationError = pcall(function()
             location = http:JSONDecode(http:GetAsync("http://ip-api.com/json/" .. ip))
         end)
-        if good and location.region and location.regionName then
+        if locationSuccess and location and location.region and location.regionName then
             return location.region, location.regionName
         else
-            warn("Failed to fetch server geo location. Error: " .. tostring(bad))
+            warn("Failed to fetch server geo location. Error: " .. tostring(locationError or errorMsg or "Unknown"))
             return nil, nil
         end
     else
-        warn("Failed to process server IP. Error: " .. tostring(b))
+        warn("Failed to process server IP. Error: " .. tostring(errorMsg or "Unknown"))
         return nil, nil
     end
 end
