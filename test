@@ -1,10 +1,17 @@
--- This script must be placed in ServerScriptService or as a regular Script (not LocalScript)
--- HTTP requests can only be executed from server scripts
+-- IMPORTANTE: Este script DEBE estar en ServerScriptService
+-- NO funcionará en StarterPlayerScripts, StarterGui, o como LocalScript
 
+-- Verificar si HTTP está habilitado
 local HttpService = game:GetService("HttpService")
 
--- Function to get server IP with error handling
+if not HttpService.HttpEnabled then
+    error("HTTP requests are not enabled! Go to Game Settings > Security > Allow HTTP Requests")
+end
+
+-- Función para obtener la IP del servidor
 local function getServerIP()
+    print("Intentando obtener IP del servidor...")
+    
     local success, result = pcall(function()
         local response = HttpService:GetAsync("http://ip-api.com/json")
         local data = HttpService:JSONDecode(response)
@@ -12,19 +19,23 @@ local function getServerIP()
     end)
     
     if success then
-        print("Server IP Address:", result)
+        print("✅ IP del servidor:", result)
         return result
     else
-        warn("Failed to get IP address:", result)
+        warn("❌ Error al obtener IP:", result)
+        warn("Posibles causas:")
+        warn("1. HTTP Requests no están habilitados en Game Settings")
+        warn("2. El script no está en ServerScriptService")
+        warn("3. Problemas de conexión")
         return nil
     end
 end
 
--- Get and display the IP
+-- Ejecutar
 local ipAddress = getServerIP()
 
--- Optional: Store the IP for later use
 if ipAddress then
-    -- You can use the IP address here for whatever you need
-    print("Successfully retrieved IP:", ipAddress)
+    print("🌐 IP obtenida exitosamente:", ipAddress)
+else
+    print("💥 No se pudo obtener la IP")
 end
