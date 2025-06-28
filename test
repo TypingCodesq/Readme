@@ -1,0 +1,28 @@
+function GetServerRegion()
+    local http = game:GetService("HttpService")
+
+    local result
+    
+    local g, b = pcall(function()
+        result = http:JSONDecode(http:GetAsync("https://api4.my-ip.io/ip.json"))
+    end)
+
+    local ip = result.ip
+    print("Server IP: " .. tostring(ip)) -- Added line to print the IP
+    
+    if g and ip then
+        local location
+        local good, bad = pcall(function()
+            location = http:JSONDecode(http:GetAsync("http://ip-api.com/json/"..ip))
+        end)
+        if good and location.region and location.regionName then
+            return location.region, location.regionName
+        else
+            warn("fatal error fetching server geo location. error: "..bad)
+            return nil, nil
+        end
+    else
+        warn("fatal error fetching server ip. error: "..b)
+        return nil, nil
+    end
+end
