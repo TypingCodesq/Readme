@@ -1,53 +1,11 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local http = game:GetService("HttpService")
+-- Get the HTTP Service
+local HttpService = game:GetService("HttpService")
 
--- Crear un RemoteEvent para enviar datos al cliente (opcional)
-local regionEvent = Instance.new("RemoteEvent")
-regionEvent.Name = "RegionEvent"
-regionEvent.Parent = ReplicatedStorage
+-- Get a response from the server (should probably use pcall)
+local response = HttpService:GetAsync("http://ip-api.com/json")
 
-function GetServerRegion()
-    print("Iniciando GetServerRegion...")
-    local result
-    local success, errorMsg = pcall(function()
-        result = http:JSONDecode(http:GetAsync("https://api4.my-ip.io/ip.json"))
-    end)
+-- Get the IP Address from the response
+local ipAddress = HttpService:JSONDecode(response).query
 
-    if not success then
-        warn("Error al obtener IP: " .. tostring(errorMsg))
-        return nil, nil
-    end
-
-    local ip = result and result.ip
-    if ip then
-        print("Server IP: " .. tostring(ip))
-    else
-        warn("No se pudo obtener la IP. Resultado: " .. tostring(result or "nil"))
-        return nil, nil
-    end
-    
-    print("Intentando obtener ubicación...")
-    if success and ip then
-        local location
-        local locationSuccess, locationError = pcall(function()
-            location = http:JSONDecode(http:GetAsync("http://ip-api.com/json/" .. ip))
-        end)
-        if locationSuccess and location and location.region and location.regionName then
-            print("Región: " .. location.region .. ", Nombre: " .. location.regionName)
-            -- Enviar al cliente (opcional)
-            regionEvent:FireAllClients(location.region, location.regionName)
-            return location.region, location.regionName
-        else
-            warn("Error al obtener geo ubicación: " .. tostring(locationError or "Desconocido"))
-            return nil, nil
-        end
-    else
-        warn("Error en el procesamiento: " .. tostring(errorMsg or "Desconocido"))
-        return nil, nil
-    end
-end
-
--- Llamar a la función al iniciar el servidor
-print("Llamando a GetServerRegion...")
-local region, regionName = GetServerRegion()
-print("Resultado: Región = " .. tostring(region) .. ", Nombre = " .. tostring(regionName))
+-- Display the IP Address
+print(ipAddress)
