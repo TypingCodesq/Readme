@@ -1,36 +1,50 @@
 function GetServerRegion()
+    print("Iniciando GetServerRegion...") -- Punto de depuración 1
     local http = game:GetService("HttpService")
     if not http then
-        warn("HttpService is not available.")
+        warn("HttpService no está disponible.")
         return nil, nil
     end
     
     local result
+    print("Intentando obtener IP...") -- Punto de depuración 2
     local success, errorMsg = pcall(function()
         result = http:JSONDecode(http:GetAsync("https://api4.my-ip.io/ip.json"))
     end)
 
-    local ip = success and result and result.ip
+    if not success then
+        warn("Error al obtener IP: " .. tostring(errorMsg))
+        return nil, nil
+    end
+
+    local ip = result and result.ip
     if ip then
-        print("Server IP: " .. tostring(ip))
+        print("Server IP: " .. tostring(ip)) -- Imprimir IP
     else
-        warn("Failed to retrieve server IP. Error: " .. tostring(errorMsg or "Unknown"))
+        warn("No se pudo obtener la IP. Resultado: " .. tostring(result or "nil"))
         return nil, nil
     end
     
+    print("Intentando obtener ubicación...") -- Punto de depuración 3
     if success and ip then
         local location
         local locationSuccess, locationError = pcall(function()
             location = http:JSONDecode(http:GetAsync("http://ip-api.com/json/" .. ip))
         end)
         if locationSuccess and location and location.region and location.regionName then
+            print("Región: " .. location.region .. ", Nombre: " .. location.regionName)
             return location.region, location.regionName
         else
-            warn("Failed to fetch server geo location. Error: " .. tostring(locationError or errorMsg or "Unknown"))
+            warn("Error al obtener geo ubicación: " .. tostring(locationError or "Desconocido"))
             return nil, nil
         end
     else
-        warn("Failed to process server IP. Error: " .. tostring(errorMsg or "Unknown"))
+        warn("Error en el procesamiento: " .. tostring(errorMsg or "Desconocido"))
         return nil, nil
     end
 end
+
+-- Llamada a la función para probarla
+print("Llamando a GetServerRegion...")
+local region, regionName = GetServerRegion()
+print("Resultado: Región = " .. tostring(region) .. ", Nombre = " .. tostring(regionName))
