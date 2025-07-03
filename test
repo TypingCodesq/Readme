@@ -1,41 +1,1999 @@
--- IMPORTANTE: Este script DEBE estar en ServerScriptService
--- NO funcionará en StarterPlayerScripts, StarterGui, o como LocalScript
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
 
--- Verificar si HTTP está habilitado
-local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Backpack = LocalPlayer:FindFirstChild("Backpack")
+local Leaderstats = LocalPlayer:WaitForChild("leaderstats")
+local ShecklesCount = Leaderstats:WaitForChild("Sheckles")
 
-if not HttpService.HttpEnabled then
-    error("HTTP requests are not enabled! Go to Game Settings > Security > Allow HTTP Requests")
+-- Exploit Detection
+local function GetExploit()
+    local exploits = {
+        {name = "Synapse X", check = function() return syn and syn.request end},
+        {name = "Script-Ware", check = function() return getgenv().isfile end},
+        {name = "KRNL", check = function() return KRNL_LOADED or getgenv().krnl_loaded end},
+        {name = "Oxygen U", check = function() return getgenv().OXYGEN_LOADED end},
+        {name = "Fluxus", check = function() return getgenv().fluxus end},
+        {name = "Arceus X", check = function() return getgenv().arceus end},
+        {name = "Delta", check = function() return getgenv().delta end},
+        {name = "Evon", check = function() return getgenv().evon end},
+        {name = "Wave", check = function() return getgenv().wave end},
+        {name = "Electron", check = function() return getgenv().electron end},
+        {name = "Trigon", check = function() return getgenv().trigon end},
+        {name = "Solara", check = function() return getgenv().solara end},
+        {name = "Comet", check = function() return getgenv().comet end},
+        {name = "Nihon", check = function() return getgenv().nihon end},
+        {name = "Generic", check = function() return true end}
+    }
+    
+    for _, exploit in ipairs(exploits) do
+        if exploit.check() then
+            return exploit.name
+        end
+    end
+    return "Unknown"
 end
 
--- Función para obtener la IP del servidor
-local function getServerIP()
-    print("Intentando obtener IP del servidor...")
-    
-    local success, result = pcall(function()
-        local response = HttpService:GetAsync("http://ip-api.com/json")
-        local data = HttpService:JSONDecode(response)
-        return data.query
+local function SafeFireProximityPrompt(prompt)
+    local success, err = pcall(function()
+        if fireproximityprompt then
+            fireproximityprompt(prompt)
+        elseif fireclickdetector then
+            fireclickdetector(prompt)
+        end
     end)
+    return success
+end
+
+-- UI Creation Functions
+local function CreateModernUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "GardenFarmGUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    if success then
-        print("✅ IP del servidor:", result)
-        return result
+    if gethui then
+        ScreenGui.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = CoreGui
     else
-        warn("❌ Error al obtener IP:", result)
-        warn("Posibles causas:")
-        warn("1. HTTP Requests no están habilitados en Game Settings")
-        warn("2. El script no está en ServerScriptService")
-        warn("3. Problemas de conexión")
-        return nil
+        ScreenGui.Parent = CoreGui
+    end
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    MainFrame.Size = UDim2.new(0, 450, 0, 600)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 12)
+    Corner.Parent = MainFrame
+
+    local Gradient = Instance.new("UIGradient")
+    Gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+    }
+    Gradient.Rotation = 45
+    Gradient.Parent = MainFrame
+
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Name = "TitleBar"
+    TitleBar.Parent = MainFrame
+    TitleBar.Size = UDim2.new(1, 0, 0, 50)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(69, 142, 40)
+    TitleBar.BorderSizePixel = 0
+
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 12)
+    TitleCorner.Parent = TitleBar
+
+    local TitleFix = Instance.new("Frame")
+    TitleFix.Parent = TitleBar
+    TitleFix.Position = UDim2.new(0, 0, 0.5, 0)
+    TitleFix.Size = UDim2.new(1, 0, 0.5, 0)
+    TitleFix.BackgroundColor3 = Color3.fromRGB(69, 142, 40)
+    TitleFix.BorderSizePixel = 0
+
+    local Title = Instance.new("TextLabel")
+    Title.Name = "Title"
+    Title.Parent = TitleBar
+    Title.Size = UDim2.new(1, -100, 1, 0)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = "🌱 Garden Farm Pro | " .. GetExploit()
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 16
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextYAlignment = Enum.TextYAlignment.Center
+
+    local TitlePadding = Instance.new("UIPadding")
+    TitlePadding.PaddingLeft = UDim.new(0, 15)
+    TitlePadding.Parent = Title
+
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Parent = TitleBar
+    CloseButton.AnchorPoint = Vector2.new(1, 0)
+    CloseButton.Position = UDim2.new(1, -10, 0, 10)
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Text = "×"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 16
+
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 6)
+    CloseCorner.Parent = CloseButton
+
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    local ScrollingFrame = Instance.new("ScrollingFrame")
+    ScrollingFrame.Name = "ScrollingFrame"
+    ScrollingFrame.Parent = MainFrame
+    ScrollingFrame.Position = UDim2.new(0, 10, 0, 60)
+    ScrollingFrame.Size = UDim2.new(1, -20, 1, -70)
+    ScrollingFrame.BackgroundTransparency = 1
+    ScrollingFrame.BorderSizePixel = 0
+    ScrollingFrame.ScrollBarThickness = 6
+    ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(69, 142, 40)
+    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Parent = ScrollingFrame
+    UIListLayout.Padding = UDim.new(0, 10)
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+    end)
+
+    return ScreenGui, ScrollingFrame
+end
+
+local function CreateSection(parent, title, icon)
+    local Section = Instance.new("Frame")
+    Section.Name = title
+    Section.Parent = parent
+    Section.Size = UDim2.new(1, 0, 0, 200)
+    Section.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Section.BorderSizePixel = 0
+
+    local SectionCorner = Instance.new("UICorner")
+    SectionCorner.CornerRadius = UDim.new(0, 8)
+    SectionCorner.Parent = Section
+
+    local SectionHeader = Instance.new("Frame")
+    SectionHeader.Name = "Header"
+    SectionHeader.Parent = Section
+    SectionHeader.Size = UDim2.new(1, 0, 0, 35)
+    SectionHeader.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    SectionHeader.BorderSizePixel = 0
+
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 8)
+    HeaderCorner.Parent = SectionHeader
+
+    local HeaderFix = Instance.new("Frame")
+    HeaderFix.Parent = SectionHeader
+    HeaderFix.Position = UDim2.new(0, 0, 0.5, 0)
+    HeaderFix.Size = UDim2.new(1, 0, 0.5, 0)
+    HeaderFix.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    HeaderFix.BorderSizePixel = 0
+
+    local HeaderTitle = Instance.new("TextLabel")
+    HeaderTitle.Name = "HeaderTitle"
+    HeaderTitle.Parent = SectionHeader
+    HeaderTitle.Size = UDim2.new(1, -10, 1, 0)
+    HeaderTitle.BackgroundTransparency = 1
+    HeaderTitle.Font = Enum.Font.GothamBold
+    HeaderTitle.Text = icon .. " " .. title
+    HeaderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    HeaderTitle.TextSize = 14
+    HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
+    HeaderTitle.TextYAlignment = Enum.TextYAlignment.Center
+
+    local HeaderPadding = Instance.new("UIPadding")
+    HeaderPadding.PaddingLeft = UDim.new(0, 10)
+    HeaderPadding.Parent = HeaderTitle
+
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "Content"
+    ContentFrame.Parent = Section
+    ContentFrame.Position = UDim2.new(0, 5, 0, 40)
+    ContentFrame.Size = UDim2.new(1, -10, 1, -45)
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.BorderSizePixel = 0
+
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.Parent = ContentFrame
+    ContentLayout.Padding = UDim.new(0, 5)
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        Section.Size = UDim2.new(1, 0, 0, ContentLayout.AbsoluteContentSize.Y + 50)
+    end)
+
+    return Section, ContentFrame
+end
+
+local function CreateToggle(parent, text, callback)
+    local Toggle = Instance.new("Frame")
+    Toggle.Name = "Toggle"
+    Toggle.Parent = parent
+    Toggle.Size = UDim2.new(1, 0, 0, 30)
+    Toggle.BackgroundTransparency = 1
+    Toggle.BorderSizePixel = 0
+
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Name = "ToggleButton"
+    ToggleButton.Parent = Toggle
+    ToggleButton.Size = UDim2.new(0, 50, 0, 25)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.Text = ""
+
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 12)
+    ToggleCorner.Parent = ToggleButton
+
+    local ToggleCircle = Instance.new("Frame")
+    ToggleCircle.Name = "Circle"
+    ToggleCircle.Parent = ToggleButton
+    ToggleCircle.Position = UDim2.new(0, 2, 0, 2)
+    ToggleCircle.Size = UDim2.new(0, 21, 0, 21)
+    ToggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleCircle.BorderSizePixel = 0
+
+    local CircleCorner = Instance.new("UICorner")
+    CircleCorner.CornerRadius = UDim.new(0, 10)
+    CircleCorner.Parent = ToggleCircle
+
+    local ToggleLabel = Instance.new("TextLabel")
+    ToggleLabel.Name = "Label"
+    ToggleLabel.Parent = Toggle
+    ToggleLabel.Position = UDim2.new(0, 60, 0, 0)
+    ToggleLabel.Size = UDim2.new(1, -60, 1, 0)
+    ToggleLabel.BackgroundTransparency = 1
+    ToggleLabel.Font = Enum.Font.Gotham
+    ToggleLabel.Text = text
+    ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleLabel.TextSize = 12
+    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+    local enabled = false
+    ToggleButton.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        local targetColor = enabled and Color3.fromRGB(69, 142, 40) or Color3.fromRGB(255, 75, 75)
+        local targetPosition = enabled and UDim2.new(0, 27, 0, 2) or UDim2.new(0, 2, 0, 2)
+        
+        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+        TweenService:Create(ToggleCircle, TweenInfo.new(0.2), {Position = targetPosition}):Play()
+        
+        if callback then
+            callback(enabled)
+        end
+    end)
+
+    return Toggle, function(state)
+        enabled = state
+        local targetColor = enabled and Color3.fromRGB(69, 142, 40) or Color3.fromRGB(255, 75, 75)
+        local targetPosition = enabled and UDim2.new(0, 27, 0, 2) or UDim2.new(0, 2, 0, 2)
+        
+        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+        TweenService:Create(ToggleCircle, TweenInfo.new(0.2), {Position = targetPosition}):Play()
     end
 end
 
--- Ejecutar
-local ipAddress = getServerIP()
+local function CreateButton(parent, text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = "Button"
+    Button.Parent = parent
+    Button.Size = UDim2.new(1, 0, 0, 30)
+    Button.BackgroundColor3 = Color3.fromRGB(69, 142, 40)
+    Button.BorderSizePixel = 0
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 12
 
-if ipAddress then
-    print("🌐 IP obtenida exitosamente:", ipAddress)
-else
-    print("💥 No se pudo obtener la IP")
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 6)
+    ButtonCorner.Parent = Button
+
+    Button.MouseButton1Click:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(85, 170, 50)}):Play()
+        wait(0.1)
+        TweenService:Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(69, 142, 40)}):Play()
+        if callback then
+            callback()
+        end
+    end)
+
+    return Button
 end
+
+local function CreateSlider(parent, text, min, max, default, callback)
+    local Slider = Instance.new("Frame")
+    Slider.Name = "Slider"
+    Slider.Parent = parent
+    Slider.Size = UDim2.new(1, 0, 0, 50)
+    Slider.BackgroundTransparency = 1
+    Slider.BorderSizePixel = 0
+
+    local SliderLabel = Instance.new("TextLabel")
+    SliderLabel.Name = "Label"
+    SliderLabel.Parent = Slider
+    SliderLabel.Size = UDim2.new(1, 0, 0, 20)
+    SliderLabel.BackgroundTransparency = 1
+    SliderLabel.Font = Enum.Font.Gotham
+    SliderLabel.Text = text .. ": " .. tostring(default)
+    SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SliderLabel.TextSize = 12
+    SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SliderLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Name = "SliderFrame"
+    SliderFrame.Parent = Slider
+    SliderFrame.Position = UDim2.new(0, 0, 0, 25)
+    SliderFrame.Size = UDim2.new(1, 0, 0, 20)
+    SliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    SliderFrame.BorderSizePixel = 0
+
+    local SliderCorner = Instance.new("UICorner")
+    SliderCorner.CornerRadius = UDim.new(0, 10)
+    SliderCorner.Parent = SliderFrame
+
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Name = "Fill"
+    SliderFill.Parent = SliderFrame
+    SliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    SliderFill.BackgroundColor3 = Color3.fromRGB(69, 142, 40)
+    SliderFill.BorderSizePixel = 0
+
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(0, 10)
+    FillCorner.Parent = SliderFill
+
+    local SliderButton = Instance.new("TextButton")
+    SliderButton.Name = "Button"
+    SliderButton.Parent = SliderFrame
+    SliderButton.Size = UDim2.new(1, 0, 1, 0)
+    SliderButton.BackgroundTransparency = 1
+    SliderButton.Text = ""
+
+    local currentValue = default
+    local dragging = false
+
+    SliderButton.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = UserInputService:GetMouseLocation()
+            local relativeX = math.clamp((mouse.X - SliderFrame.AbsolutePosition.X) / SliderFrame.AbsoluteSize.X, 0, 1)
+            currentValue = math.floor(min + (max - min) * relativeX)
+            
+            SliderLabel.Text = text .. ": " .. tostring(currentValue)
+            SliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+            
+            if callback then
+                callback(currentValue)
+            end
+        end
+    end)
+
+    return Slider, function(value)
+        currentValue = value
+        local relativeX = (value - min) / (max - min)
+        SliderLabel.Text = text .. ": " .. tostring(value)
+        SliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+    end
+end
+
+local function CreateDropdown(parent, text, options, callback)
+    local Dropdown = Instance.new("Frame")
+    Dropdown.Name = "Dropdown"
+    Dropdown.Parent = parent
+    Dropdown.Size = UDim2.new(1, 0, 0, 6)
+    Dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Dropdown.BorderSizePixel = 0
+
+    local DropdownCorner = Instance.new("UICorner")
+    DropdownCorner.CornerRadius = UDim.new(0, 6)
+    DropdownCorner.Parent = Dropdown
+
+    local DropdownButton = Instance.new("TextButton")
+    DropdownButton.Name = "Button"
+    DropdownButton.Parent = Dropdown
+    DropdownButton.Size = UDim2.new(1, 0, 1, 0)
+    DropdownButton.BackgroundTransparency = 1
+    DropdownButton.Font = Enum.Font.Gotham
+    DropdownButton.Text = text .. ": None"
+    DropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DropdownButton.TextSize = 12
+    DropdownButton.TextXAlignment = Enum.TextXAlignment.Left
+
+    local DropdownPadding = Instance.new("UIPadding")
+    DropdownPadding.PaddingLeft = UDim.new(0, 10)
+    DropdownPadding.Parent = DropdownButton
+
+    local DropdownList = Instance.new("Frame")
+    DropdownList.Name = "List"
+    DropdownList.Parent = Dropdown
+    DropdownList.Position = UDim2.new(0, 0, 1, 2)
+    DropdownList.Size = UDim2.new(1, 0, 0, 0)
+    DropdownList.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    DropdownList.BorderSizePixel = 0
+    DropdownList.Visible = false
+    DropdownList.ZIndex = 10
+
+    local ListCorner = Instance.new("UICorner")
+    ListCorner.CornerRadius = UDim.new(0, 6)
+    ListCorner.Parent = DropdownList
+
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.Parent = DropdownList
+    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local selectedOption = nil
+    local expanded = false
+
+    DropdownButton.MouseButton1Click:Connect(function()
+        expanded = not expanded
+        DropdownList.Visible = expanded
+        
+        if expanded then
+            DropdownList.Size = UDim2.new(1, 0, 0, math.min(#options * 25, 150))
+        end
+    end)
+
+    for i, option in ipairs(options) do
+        local OptionButton = Instance.new("TextButton")
+        OptionButton.Name = "Option"
+        OptionButton.Parent = DropdownList
+        OptionButton.Size = UDim2.new(1, 0, 0, 25)
+        OptionButton.BackgroundTransparency = 1
+        OptionButton.Font = Enum.Font.Gotham
+        OptionButton.Text = option
+        OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        OptionButton.TextSize = 12
+        OptionButton.TextXAlignment = Enum.TextXAlignment.Left
+
+        local OptionPadding = Instance.new("UIPadding")
+        OptionPadding.PaddingLeft = UDim.new(0, 10)
+        OptionPadding.Parent = OptionButton
+
+        OptionButton.MouseButton1Click:Connect(function()
+            selectedOption = option
+            DropdownButton.Text = text .. ": " .. option
+            DropdownList.Visible = false
+            expanded = false
+            
+            if callback then
+                callback(option)
+            end
+        end)
+    end
+
+    return Dropdown, function(option)
+        selectedOption = option
+        DropdownButton.Text = text .. ": " .. option
+    end
+end
+
+-- Game Configuration
+local GameConfig = {
+    AutoPlant = false,
+    AutoHarvest = false,
+    AutoSell = false,
+    AutoBuy = false,
+    AutoWalk = false,
+    NoClip = false,
+    AutoWalkAllowRandom = true,
+    SellThreshold = 15,
+    PlantDelay = 0.3,
+    HarvestDelay = 0.1,
+    WalkDelay = 2,
+    SelectedSeed = nil,
+    SelectedBuySeed = nil,
+    PlantRandom = false,
+    HarvestIgnores = {
+        Normal = false,
+        Gold = false,
+        Rainbow = false
+    }
+}
+
+-- Game Data
+local GameData = {
+    ReplicatedStorage = ReplicatedStorage,
+    GameEvents = ReplicatedStorage:WaitForChild("GameEvents"),
+    Workspace = workspace,
+    Farm = workspace:WaitForChild("Farm"),
+    LocalPlayer = LocalPlayer,
+    Character = nil,
+    MyFarm = nil,
+    SeedStock = {},
+    OwnedSeeds = {},
+    CropCount = 0,
+    Status = "Initializing..."
+}
+
+-- Utility Functions
+local function GetFarmOwner(farm)
+    local important = farm:FindFirstChild("Important")
+    if not important then return nil end
+    
+    local data = important:FindFirstChild("Data")
+    if not data then return nil end
+    
+    local owner = data:FindFirstChild("Owner")
+    if not owner then return nil end
+    
+    return owner.Value
+end
+
+local function GetPlayerFarm()
+    local farms = GameData.Farm:GetChildren()
+    for _, farm in ipairs(farms) do
+        local owner = GetFarmOwner(farm)
+        if owner == GameData.LocalPlayer.Name then
+            return farm
+        end
+    end
+    return nil
+end
+
+local function GetSeedInfo(tool)
+    local plantName = tool:FindFirstChild("Plant_Name")
+    local count = tool:FindFirstChild("Numbers")
+    
+    if not plantName or not count then
+        return nil, 0
+    end
+    
+    return plantName.Value, count.Value
+end
+
+local function CollectSeeds(parent, seedTable)
+    for _, tool in ipairs(parent:GetChildren()) do
+        if tool:IsA("Tool") then
+            local name, count = GetSeedInfo(tool)
+            if name and count then
+                seedTable[name] = {
+                    Count = count,
+                    Tool = tool
+                }
+            end
+        end
+    end
+end
+
+local function GetOwnedSeeds()
+    GameData.OwnedSeeds = {}
+    
+    if GameData.Character then
+        CollectSeeds(GameData.Character, GameData.OwnedSeeds)
+    end
+    
+    if Backpack then
+        CollectSeeds(Backpack, GameData.OwnedSeeds)
+    end
+    
+    return GameData.OwnedSeeds
+end
+
+local function GetCropCount()
+    local count = 0
+    local character = GameData.Character
+    local backpack = Backpack
+    
+    if character then
+        for _, tool in ipairs(character:GetChildren()) do
+            if tool:IsA("Tool") and tool:FindFirstChild("Item_String") then
+                count = count + 1
+            end
+        end
+    end
+    
+    if backpack then
+        for _, tool in ipairs(backpack:GetChildren()) do
+            if tool:IsA("Tool") and tool:FindFirstChild("Item_String") then
+                count = count + 1
+            end
+        end
+    end
+    
+    return count
+end
+
+local function GetSeedStock(ignoreNoStock)
+    local seedShop = PlayerGui:FindFirstChild("Seed_Shop")
+    if not seedShop then return {} end
+    
+    local items = seedShop:FindFirstChild("Blueberry", true)
+    if not items then return {} end
+    items = items.Parent
+    
+    local newList = {}
+    for _, item in ipairs(items:GetChildren()) do
+        local mainFrame = item:FindFirstChild("Main_Frame")
+        if not mainFrame then continue end
+        
+        local stockText = mainFrame:FindFirstChild("Stock_Text")
+        if not stockText then continue end
+        local stockCount = tonumber(stockText.Text:match("%d+")) or 0
+        
+        if ignoreNoStock and stockCount <= 0 then continue end
+        GameData.SeedStock[item.Name] = stockCount
+        newList[item.Name] = stockCount
+    end
+    
+    return ignoreNoStock and newList or GameData.SeedStock
+end
+
+local function GetArea(basePart)
+    local center = basePart:GetPivot()
+    local size = basePart.Size
+    
+    local x1 = math.ceil(center.X - (size.X / 2))
+    local z1 = math.ceil(center.Z - (size.Z / 2))
+    local x2 = math.floor(center.X + (size.X / 2))
+    local z2 = math.floor(center.Z + (size.Z / 2))
+    
+    return x1, z1, x2, z2
+end
+
+local function GetRandomFarmPoint()
+    if not GameData.MyFarm then return Vector3.new(0, 4, 0) end
+    
+    local important = GameData.MyFarm:FindFirstChild("Important")
+    if not important then return Vector3.new(0, 4, 0) end
+    
+    local plantLocations = important:FindFirstChild("Plant_Locations")
+    if not plantLocations then return Vector3.new(0, 4, 0) end
+    
+    local farmLands = plantLocations:GetChildren()
+    if #farmLands == 0 then return Vector3.new(0, 4, 0) end
+    
+    local farmLand = farmLands[math.random(1, #farmLands)]
+    local x1, z1, x2, z2 = GetArea(farmLand)
+    local x = math.random(x1, x2)
+    local z = math.random(z1, z2)
+    
+    return Vector3.new(x, 4, z)
+end
+
+-- Core Game Functions
+local function PlantSeed(position, seedName)
+    local success, err = pcall(function()
+        if not GameData.OwnedSeeds[seedName] or GameData.OwnedSeeds[seedName].Count <= 0 then
+            return false
+        end
+        local tool = GameData.OwnedSeeds[seedName].Tool
+        if tool.Parent == Backpack and GameData.Character then
+            GameData.Character.Humanoid:EquipTool(tool)
+        end
+        GameData.GameEvents.Plant_RE:FireServer(position, seedName)
+        return true
+    end)
+    
+    if not success then
+        warn("Failed to plant seed: " .. tostring(err))
+        return false
+    end
+    return success
+end
+
+local function AutoPlantLoop()
+    if not GameConfig.AutoPlant or not GameData.MyFarm then return end
+    local seedName = GameConfig.SelectedSeed
+    if GameConfig.PlantRandom then
+        local seeds = {}
+        for name, _ in pairs(GameData.OwnedSeeds) do
+            table.insert(seeds, name)
+        end
+        seedName = seeds[math.random(1, #seeds)]
+    end
+    if seedName and GameData.OwnedSeeds[seedName] and GameData.OwnedSeeds[seedName].Count > 0 then
+        local important = GameData.MyFarm:FindFirstChild("Important")
+        if not important then return end
+        local plantLocations = important:FindFirstChild("Plant_Locations")
+        if not plantLocations then return end
+        local dirt = plantLocations:FindFirstChildOfClass("Part")
+        if not dirt then return end
+        local x1, z1, x2, z2 = GetArea(dirt)
+        
+        if GameConfig.PlantRandom then
+            local position = GetRandomFarmPoint()
+            if PlantSeed(position, seedName) then
+                GameData.OwnedSeeds[seedName].Count = GameData.OwnedSeeds[seedName].Count - 1
+            end
+        else
+            for x = x1, x2 do
+                for z = z1, z2 do
+                    if not GameConfig.AutoPlant or not GameData.OwnedSeeds[seedName] or GameData.OwnedSeeds[seedName].Count <= 0 then
+                        return
+                    end
+                    local position = Vector3.new(x, 0.13, z)
+                    if PlantSeed(position, seedName) then
+                        GameData.OwnedSeeds[seedName].Count = GameData.OwnedSeeds[seedName].Count - 1
+                    end
+                    wait(GameConfig.PlantDelay)
+                end
+            end
+        end
+    end
+end
+
+local function HarvestPlant(plant)
+    local prompt = plant:FindFirstChild("ProximityPrompt", true)
+    if prompt and prompt.Enabled then
+        SafeFireProximityPrompt(prompt)
+    end
+end
+
+local function GetHarvestablePlants()
+    local plants = {}
+    if not GameData.MyFarm then return plants end
+    local important = GameData.MyFarm:FindFirstChild("Important")
+    if not important then return plants end
+    local plantsPhysical = important:FindFirstChild("Plants_Physical")
+    if not plantsPhysical then return plants end
+    
+    local character = GameData.Character
+    if not character then return plants end
+    local playerPosition = character:GetPivot().Position
+    
+    for _, plant in ipairs(plantsPhysical:GetChildren()) do
+        local fruits = plant:FindFirstChild("Fruits")
+        if fruits then
+            for _, fruit in ipairs(fruits:GetChildren()) do
+                local variant = fruit:FindFirstChild("Variant")
+                local variantValue = variant and variant.Value or "Normal"
+                if not GameConfig.HarvestIgnores[variantValue] then
+                    local prompt = fruit:FindFirstChild("ProximityPrompt", true)
+                    if prompt and prompt.Enabled then
+                        local distance = (playerPosition - fruit:GetPivot().Position).Magnitude
+                        if distance <= 15 then
+                            table.insert(plants, fruit)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return plants
+end
+
+local function AutoHarvest()
+    if not GameConfig.AutoHarvest or not GameData.MyFarm then return end
+    local plants = GetHarvestablePlants()
+    for _, plant in ipairs(plants) do
+        HarvestPlant(plant)
+        wait(GameConfig.HarvestDelay)
+    end
+end
+
+local function SellInventory()
+    if not GameData.Character then return end
+    local previous = GameData.Character:GetPivot()
+    local previousSheckles = ShecklesCount.Value
+    local isSelling = true
+    
+    GameData.Character:PivotTo(CFrame.new(62, 4, -26))
+    while wait() do
+        if ShecklesCount.Value ~= previousSheckles then break end
+        GameData.GameEvents.Sell_Inventory:FireServer()
+    end
+    GameData.Character:PivotTo(previous)
+    wait(0.2)
+    isSelling = false
+end
+
+local function AutoSellCheck()
+    if not GameConfig.AutoSell then return end
+    local cropCount = GetCropCount()
+    if cropCount >= GameConfig.SellThreshold then
+        SellInventory()
+    end
+end
+
+local function BuySeed(seed)
+    local success, err = pcall(function()
+        GameData.GameEvents.BuySeedStock:FireServer(seed)
+    end)
+    if not success then
+        warn("Failed to buy seed: " .. tostring(err))
+    end
+end
+
+local function BuyAllSelectedSeeds()
+    if not GameConfig.SelectedBuySeed then return end
+    local stock = GameData.SeedStock[GameConfig.SelectedBuySeed] or 0
+    for i = 1, stock do
+        BuySeed(GameConfig.SelectedBuySeed)
+        wait(0.1)
+    end
+end
+
+local function AutoBuy()
+    if not GameConfig.AutoBuy or not GameConfig.SelectedBuySeed then return end
+    BuySeed(GameConfig.SelectedBuySeed)
+end
+
+local function AutoWalkLoop()
+    if not GameConfig.AutoWalk or not GameData.Character or not GameData.Character:FindFirstChild("Humanoid") or isSelling then return end
+    local humanoid = GameData.Character.Humanoid
+    local plants = GetHarvestablePlants()
+    local doRandom = GameConfig.AutoWalkAllowRandom and (#plants == 0 or math.random(1, 3) == 2)
+    
+    if doRandom then
+        humanoid:MoveTo(GetRandomFarmPoint())
+    else
+        for _, plant in ipairs(plants) do
+            humanoid:MoveTo(plant:GetPivot().Position)
+            wait(GameConfig.WalkDelay)
+        end
+    end
+end
+
+local function ToggleNoClip(state)
+    if state then
+        RunService:BindToRenderStep("NoClip", Enum.RenderPriority.Character.Value, function()
+            if GameData.Character then
+                for _, part in ipairs(GameData.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        RunService:UnbindFromRenderStep("NoClip")
+        if GameData.Character then
+            for _, part in ipairs(GameData.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+end
+
+-- UI Setup and Main Loop
+local function Initialize()
+    GameData.Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    GameData.MyFarm = GetPlayerFarm()
+    GameData.OwnedSeeds = GetOwnedSeeds()
+    GameData.CropCount = GetCropCount()
+    
+    LocalPlayer.CharacterAdded:Connect(function(character)
+        GameData.Character = character
+        if GameConfig.NoClip then
+            ToggleNoClip(true)
+        end
+    end)
+    
+    GameData.Farm.ChildAdded:Connect(function(child)
+        if GetFarmOwner(child) == LocalPlayer.Name then
+            GameData.MyFarm = child
+        end
+    end)
+    
+    local ScreenGui, ScrollingFrame = CreateModernUI()
+    
+    -- Auto-Plant Section
+    local PlantSection, PlantContent = CreateSection(ScrollingFrame, "Auto-Plant", "🥕")
+    local seedOptions = {}
+    for seed, _ in pairs(GetOwnedSeeds()) do
+        table.insert(seedOptions, seed)
+    end
+    CreateDropdown(PlantContent, "Select Seed", seedOptions, function(option)
+        GameConfig.SelectedSeed = option
+    end)
+    CreateToggle(PlantContent, "Auto Plant", function(state)
+        GameConfig.AutoPlant = state
+    end)
+    CreateToggle(PlantContent, "Plant Random Points", function(state)
+        GameConfig.PlantRandom = state
+    end)
+    CreateButton(PlantContent, "Plant All", AutoPlantLoop)
+    CreateSlider(PlantContent, "Plant Delay", 0.1, 2, GameConfig.PlantDelay, function(value)
+        GameConfig.PlantDelay = value
+    end)
+    
+    -- Auto-Harvest Section
+    local HarvestSection, HarvestContent = CreateSection(ScrollingFrame, "Auto-Harvest", "🚜")
+    CreateToggle(HarvestContent, "Auto Harvest", function(state)
+        GameConfig.AutoHarvest = state
+    end)
+    for cropType, _ in pairs(GameConfig.HarvestIgnores) do
+        CreateToggle(HarvestContent, "Ignore " .. cropType, function(state)
+            GameConfig.HarvestIgnores[cropType] = state
+        end)
+    end
+    CreateSlider(HarvestContent, "Harvest Delay", 0.1, 2, GameConfig.HarvestDelay, function(value)
+        GameConfig.HarvestDelay = value
+    end)
+    
+    -- Auto-Buy Section
+    local BuySection, BuyContent = CreateSection(ScrollingFrame, "Auto-Buy", "🥕")
+    local stockOptions = {}
+    for seed, _ in pairs(GetSeedStock(true)) do
+        table.insert(stockOptions, seed)
+    end
+    CreateDropdown(BuyContent, "Buy Seed", stockOptions, function(option)
+        GameConfig.SelectedBuySeed = option
+    end)
+    CreateToggle(BuyContent, "Auto Buy", function(state)
+        GameConfig.AutoBuy = state
+    end)
+    CreateButton(BuyContent, "Buy All", BuyAllSelectedSeeds)
+    
+    -- Auto-Sell Section
+    local SellSection, SellContent = CreateSection(ScrollingFrame, "Auto-Sell", "💰")
+    CreateButton(SellContent, "Sell Inventory", SellInventory)
+    CreateToggle(SellContent, "Auto Sell", function(state)
+        GameConfig.AutoSell = state
+    end)
+    CreateSlider(SellContent, "Sell Threshold", 1, 199, GameConfig.SellThreshold, function(value)
+        GameConfig.SellThreshold = value
+    end)
+    
+    -- Auto-Walk Section
+    local WalkSection, WalkContent = CreateSection(ScrollingFrame, "Auto-Walk", "🚶")
+    CreateToggle(WalkContent, "Auto Walk", function(state)
+        GameConfig.AutoWalk = state
+    end)
+    CreateToggle(WalkContent, "Allow Random Points", function(state)
+        GameConfig.AutoWalkAllowRandom = state
+    end)
+    CreateToggle(WalkContent, "NoClip", function(state)
+        GameConfig.NoClip = state
+        ToggleNoClip(state)
+    end)
+    CreateSlider(WalkContent, "Walk Delay", 1, 120, GameConfig.WalkDelay, function(value)
+        GameConfig.WalkDelay = value
+    end)
+    
+    -- Main Loops
+    coroutine.wrap(function()
+        while wait(0.01) do
+            GetOwnedSeeds()
+            GetSeedStock()
+            if GameConfig.AutoPlant then AutoPlantLoop() end
+            if GameConfig.AutoHarvest then AutoHarvest() end
+            if GameConfig.AutoSell then AutoSellCheck() end
+            if GameConfig.AutoBuy then AutoBuy() end
+            if GameConfig.AutoWalk then AutoWalkLoop() end
+        end
+    end)()
+end
+
+Initialize()local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Backpack = LocalPlayer:FindFirstChild("Backpack")
+local Leaderstats = LocalPlayer:WaitForChild("leaderstats")
+local ShecklesCount = Leaderstats:WaitForChild("Sheckles")
+
+-- Exploit Detection
+local function GetExploit()
+    local exploits = {
+        {name = "Synapse X", check = function() return syn and syn.request end},
+        {name = "Script-Ware", check = function() return getgenv().isfile end},
+        {name = "KRNL", check = function() return KRNL_LOADED or getgenv().krnl_loaded end},
+        {name = "Oxygen U", check = function() return getgenv().OXYGEN_LOADED end},
+        {name = "Fluxus", check = function() return getgenv().fluxus end},
+        {name = "Arceus X", check = function() return getgenv().arceus end},
+        {name = "Delta", check = function() return getgenv().delta end},
+        {name = "Evon", check = function() return getgenv().evon end},
+        {name = "Wave", check = function() return getgenv().wave end},
+        {name = "Electron", check = function() return getgenv().electron end},
+        {name = "Trigon", check = function() return getgenv().trigon end},
+        {name = "Solara", check = function() return getgenv().solara end},
+        {name = "Comet", check = function() return getgenv().comet end},
+        {name = "Nihon", check = function() return getgenv().nihon end},
+        {name = "Generic", check = function() return true end}
+    }
+    
+    for _, exploit in ipairs(exploits) do
+        if exploit.check() then
+            return exploit.name
+        end
+    end
+    return "Unknown"
+end
+
+local function SafeFireProximityPrompt(prompt)
+    local success, err = pcall(function()
+        if fireproximityprompt then
+            fireproximityprompt(prompt)
+        elseif fireclickdetector then
+            fireclickdetector(prompt)
+        end
+    end)
+    return success
+end
+
+-- UI Creation Functions
+local function CreateModernUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "GardenFarmGUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    if gethui then
+        ScreenGui.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = CoreGui
+    else
+        ScreenGui.Parent = CoreGui
+    end
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    MainFrame.Size = UDim2.new(0, 450, 0, 600)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 12)
+    Corner.Parent = MainFrame
+
+    local Gradient = Instance.new("UIGradient")
+    Gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+    }
+    Gradient.Rotation = 45
+    Gradient.Parent = MainFrame
+
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Name = "TitleBar"
+    TitleBar.Parent = MainFrame
+    TitleBar.Size = UDim2.new(1, 0, 0, 50)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(69, 142, 40)
+    TitleBar.BorderSizePixel = 0
+
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 12)
+    TitleCorner.Parent = TitleBar
+
+    local TitleFix = Instance.new("Frame")
+    TitleFix.Parent = TitleBar
+    TitleFix.Position = UDim2.new(0, 0, 0.5, 0)
+    TitleFix.Size = UDim2.new(1, 0, 0.5, 0)
+    TitleFix.BackgroundColor3 = Color3.fromRGB(69, 142, 40)
+    TitleFix.BorderSizePixel = 0
+
+    local Title = Instance.new("TextLabel")
+    Title.Name = "Title"
+    Title.Parent = TitleBar
+    Title.Size = UDim2.new(1, -100, 1, 0)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = "🌱 Garden Farm Pro | " .. GetExploit()
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 16
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextYAlignment = Enum.TextYAlignment.Center
+
+    local TitlePadding = Instance.new("UIPadding")
+    TitlePadding.PaddingLeft = UDim.new(0, 15)
+    TitlePadding.Parent = Title
+
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Parent = TitleBar
+    CloseButton.AnchorPoint = Vector2.new(1, 0)
+    CloseButton.Position = UDim2.new(1, -10, 0, 10)
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Text = "×"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 16
+
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 6)
+    CloseCorner.Parent = CloseButton
+
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    local ScrollingFrame = Instance.new("ScrollingFrame")
+    ScrollingFrame.Name = "ScrollingFrame"
+    ScrollingFrame.Parent = MainFrame
+    ScrollingFrame.Position = UDim2.new(0, 10, 0, 60)
+    ScrollingFrame.Size = UDim2.new(1, -20, 1, -70)
+    ScrollingFrame.BackgroundTransparency = 1
+    ScrollingFrame.BorderSizePixel = 0
+    ScrollingFrame.ScrollBarThickness = 6
+    ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(69, 142, 40)
+    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Parent = ScrollingFrame
+    UIListLayout.Padding = UDim.new(0, 10)
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+    end)
+
+    return ScreenGui, ScrollingFrame
+end
+
+local function CreateSection(parent, title, icon)
+    local Section = Instance.new("Frame")
+    Section.Name = title
+    Section.Parent = parent
+    Section.Size = UDim2.new(1, 0, 0, 200)
+    Section.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Section.BorderSizePixel = 0
+
+    local SectionCorner = Instance.new("UICorner")
+    SectionCorner.CornerRadius = UDim.new(0, 8)
+    SectionCorner.Parent = Section
+
+    local SectionHeader = Instance.new("Frame")
+    SectionHeader.Name = "Header"
+    SectionHeader.Parent = Section
+    SectionHeader.Size = UDim2.new(1, 0, 0, 35)
+    SectionHeader.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    SectionHeader.BorderSizePixel = 0
+
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 8)
+    HeaderCorner.Parent = SectionHeader
+
+    local HeaderFix = Instance.new("Frame")
+    HeaderFix.Parent = SectionHeader
+    HeaderFix.Position = UDim2.new(0, 0, 0.5, 0)
+    HeaderFix.Size = UDim2.new(1, 0, 0.5, 0)
+    HeaderFix.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    HeaderFix.BorderSizePixel = 0
+
+    local HeaderTitle = Instance.new("TextLabel")
+    HeaderTitle.Name = "HeaderTitle"
+    HeaderTitle.Parent = SectionHeader
+    HeaderTitle.Size = UDim2.new(1, -10, 1, 0)
+    HeaderTitle.BackgroundTransparency = 1
+    HeaderTitle.Font = Enum.Font.GothamBold
+    HeaderTitle.Text = icon .. " " .. title
+    HeaderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    HeaderTitle.TextSize = 14
+    HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
+    HeaderTitle.TextYAlignment = Enum.TextYAlignment.Center
+
+    local HeaderPadding = Instance.new("UIPadding")
+    HeaderPadding.PaddingLeft = UDim.new(0, 10)
+    HeaderPadding.Parent = HeaderTitle
+
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "Content"
+    ContentFrame.Parent = Section
+    ContentFrame.Position = UDim2.new(0, 5, 0, 40)
+    ContentFrame.Size = UDim2.new(1, -10, 1, -45)
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.BorderSizePixel = 0
+
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.Parent = ContentFrame
+    ContentLayout.Padding = UDim.new(0, 5)
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        Section.Size = UDim2.new(1, 0, 0, ContentLayout.AbsoluteContentSize.Y + 50)
+    end)
+
+    return Section, ContentFrame
+end
+
+local function CreateToggle(parent, text, callback)
+    local Toggle = Instance.new("Frame")
+    Toggle.Name = "Toggle"
+    Toggle.Parent = parent
+    Toggle.Size = UDim2.new(1, 0, 0, 30)
+    Toggle.BackgroundTransparency = 1
+    Toggle.BorderSizePixel = 0
+
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Name = "ToggleButton"
+    ToggleButton.Parent = Toggle
+    ToggleButton.Size = UDim2.new(0, 50, 0, 25)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.Text = ""
+
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 12)
+    ToggleCorner.Parent = ToggleButton
+
+    local ToggleCircle = Instance.new("Frame")
+    ToggleCircle.Name = "Circle"
+    ToggleCircle.Parent = ToggleButton
+    ToggleCircle.Position = UDim2.new(0, 2, 0, 2)
+    ToggleCircle.Size = UDim2.new(0, 21, 0, 21)
+    ToggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleCircle.BorderSizePixel = 0
+
+    local CircleCorner = Instance.new("UICorner")
+    CircleCorner.CornerRadius = UDim.new(0, 10)
+    CircleCorner.Parent = ToggleCircle
+
+    local ToggleLabel = Instance.new("TextLabel")
+    ToggleLabel.Name = "Label"
+    ToggleLabel.Parent = Toggle
+    ToggleLabel.Position = UDim2.new(0, 60, 0, 0)
+    ToggleLabel.Size = UDim2.new(1, -60, 1, 0)
+    ToggleLabel.BackgroundTransparency = 1
+    ToggleLabel.Font = Enum.Font.Gotham
+    ToggleLabel.Text = text
+    ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleLabel.TextSize = 12
+    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+    local enabled = false
+    ToggleButton.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        local targetColor = enabled and Color3.fromRGB(69, 142, 40) or Color3.fromRGB(255, 75, 75)
+        local targetPosition = enabled and UDim2.new(0, 27, 0, 2) or UDim2.new(0, 2, 0, 2)
+        
+        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+        TweenService:Create(ToggleCircle, TweenInfo.new(0.2), {Position = targetPosition}):Play()
+        
+        if callback then
+            callback(enabled)
+        end
+    end)
+
+    return Toggle, function(state)
+        enabled = state
+        local targetColor = enabled and Color3.fromRGB(69, 142, 40) or Color3.fromRGB(255, 75, 75)
+        local targetPosition = enabled and UDim2.new(0, 27, 0, 2) or UDim2.new(0, 2, 0, 2)
+        
+        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+        TweenService:Create(ToggleCircle, TweenInfo.new(0.2), {Position = targetPosition}):Play()
+    end
+end
+
+local function CreateButton(parent, text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = "Button"
+    Button.Parent = parent
+    Button.Size = UDim2.new(1, 0, 0, 30)
+    Button.BackgroundColor3 = Color3.fromRGB(69, 142, 40)
+    Button.BorderSizePixel = 0
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 12
+
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 6)
+    ButtonCorner.Parent = Button
+
+    Button.MouseButton1Click:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(85, 170, 50)}):Play()
+        wait(0.1)
+        TweenService:Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(69, 142, 40)}):Play()
+        if callback then
+            callback()
+        end
+    end)
+
+    return Button
+end
+
+local function CreateSlider(parent, text, min, max, default, callback)
+    local Slider = Instance.new("Frame")
+    Slider.Name = "Slider"
+    Slider.Parent = parent
+    Slider.Size = UDim2.new(1, 0, 0, 50)
+    Slider.BackgroundTransparency = 1
+    Slider.BorderSizePixel = 0
+
+    local SliderLabel = Instance.new("TextLabel")
+    SliderLabel.Name = "Label"
+    SliderLabel.Parent = Slider
+    SliderLabel.Size = UDim2.new(1, 0, 0, 20)
+    SliderLabel.BackgroundTransparency = 1
+    SliderLabel.Font = Enum.Font.Gotham
+    SliderLabel.Text = text .. ": " .. tostring(default)
+    SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SliderLabel.TextSize = 12
+    SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SliderLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Name = "SliderFrame"
+    SliderFrame.Parent = Slider
+    SliderFrame.Position = UDim2.new(0, 0, 0, 25)
+    SliderFrame.Size = UDim2.new(1, 0, 0, 20)
+    SliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    SliderFrame.BorderSizePixel = 0
+
+    local SliderCorner = Instance.new("UICorner")
+    SliderCorner.CornerRadius = UDim.new(0, 10)
+    SliderCorner.Parent = SliderFrame
+
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Name = "Fill"
+    SliderFill.Parent = SliderFrame
+    SliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    SliderFill.BackgroundColor3 = Color3.fromRGB(69, 142, 40)
+    SliderFill.BorderSizePixel = 0
+
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(0, 10)
+    FillCorner.Parent = SliderFill
+
+    local SliderButton = Instance.new("TextButton")
+    SliderButton.Name = "Button"
+    SliderButton.Parent = SliderFrame
+    SliderButton.Size = UDim2.new(1, 0, 1, 0)
+    SliderButton.BackgroundTransparency = 1
+    SliderButton.Text = ""
+
+    local currentValue = default
+    local dragging = false
+
+    SliderButton.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = UserInputService:GetMouseLocation()
+            local relativeX = math.clamp((mouse.X - SliderFrame.AbsolutePosition.X) / SliderFrame.AbsoluteSize.X, 0, 1)
+            currentValue = math.floor(min + (max - min) * relativeX)
+            
+            SliderLabel.Text = text .. ": " .. tostring(currentValue)
+            SliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+            
+            if callback then
+                callback(currentValue)
+            end
+        end
+    end)
+
+    return Slider, function(value)
+        currentValue = value
+        local relativeX = (value - min) / (max - min)
+        SliderLabel.Text = text .. ": " .. tostring(value)
+        SliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+    end
+end
+
+local function CreateDropdown(parent, text, options, callback)
+    local Dropdown = Instance.new("Frame")
+    Dropdown.Name = "Dropdown"
+    Dropdown.Parent = parent
+    Dropdown.Size = UDim2.new(1, 0, 0, 6)
+    Dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Dropdown.BorderSizePixel = 0
+
+    local DropdownCorner = Instance.new("UICorner")
+    DropdownCorner.CornerRadius = UDim.new(0, 6)
+    DropdownCorner.Parent = Dropdown
+
+    local DropdownButton = Instance.new("TextButton")
+    DropdownButton.Name = "Button"
+    DropdownButton.Parent = Dropdown
+    DropdownButton.Size = UDim2.new(1, 0, 1, 0)
+    DropdownButton.BackgroundTransparency = 1
+    DropdownButton.Font = Enum.Font.Gotham
+    DropdownButton.Text = text .. ": None"
+    DropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DropdownButton.TextSize = 12
+    DropdownButton.TextXAlignment = Enum.TextXAlignment.Left
+
+    local DropdownPadding = Instance.new("UIPadding")
+    DropdownPadding.PaddingLeft = UDim.new(0, 10)
+    DropdownPadding.Parent = DropdownButton
+
+    local DropdownList = Instance.new("Frame")
+    DropdownList.Name = "List"
+    DropdownList.Parent = Dropdown
+    DropdownList.Position = UDim2.new(0, 0, 1, 2)
+    DropdownList.Size = UDim2.new(1, 0, 0, 0)
+    DropdownList.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    DropdownList.BorderSizePixel = 0
+    DropdownList.Visible = false
+    DropdownList.ZIndex = 10
+
+    local ListCorner = Instance.new("UICorner")
+    ListCorner.CornerRadius = UDim.new(0, 6)
+    ListCorner.Parent = DropdownList
+
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.Parent = DropdownList
+    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local selectedOption = nil
+    local expanded = false
+
+    DropdownButton.MouseButton1Click:Connect(function()
+        expanded = not expanded
+        DropdownList.Visible = expanded
+        
+        if expanded then
+            DropdownList.Size = UDim2.new(1, 0, 0, math.min(#options * 25, 150))
+        end
+    end)
+
+    for i, option in ipairs(options) do
+        local OptionButton = Instance.new("TextButton")
+        OptionButton.Name = "Option"
+        OptionButton.Parent = DropdownList
+        OptionButton.Size = UDim2.new(1, 0, 0, 25)
+        OptionButton.BackgroundTransparency = 1
+        OptionButton.Font = Enum.Font.Gotham
+        OptionButton.Text = option
+        OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        OptionButton.TextSize = 12
+        OptionButton.TextXAlignment = Enum.TextXAlignment.Left
+
+        local OptionPadding = Instance.new("UIPadding")
+        OptionPadding.PaddingLeft = UDim.new(0, 10)
+        OptionPadding.Parent = OptionButton
+
+        OptionButton.MouseButton1Click:Connect(function()
+            selectedOption = option
+            DropdownButton.Text = text .. ": " .. option
+            DropdownList.Visible = false
+            expanded = false
+            
+            if callback then
+                callback(option)
+            end
+        end)
+    end
+
+    return Dropdown, function(option)
+        selectedOption = option
+        DropdownButton.Text = text .. ": " .. option
+    end
+end
+
+-- Game Configuration
+local GameConfig = {
+    AutoPlant = false,
+    AutoHarvest = false,
+    AutoSell = false,
+    AutoBuy = false,
+    AutoWalk = false,
+    NoClip = false,
+    AutoWalkAllowRandom = true,
+    SellThreshold = 15,
+    PlantDelay = 0.3,
+    HarvestDelay = 0.1,
+    WalkDelay = 2,
+    SelectedSeed = nil,
+    SelectedBuySeed = nil,
+    PlantRandom = false,
+    HarvestIgnores = {
+        Normal = false,
+        Gold = false,
+        Rainbow = false
+    }
+}
+
+-- Game Data
+local GameData = {
+    ReplicatedStorage = ReplicatedStorage,
+    GameEvents = ReplicatedStorage:WaitForChild("GameEvents"),
+    Workspace = workspace,
+    Farm = workspace:WaitForChild("Farm"),
+    LocalPlayer = LocalPlayer,
+    Character = nil,
+    MyFarm = nil,
+    SeedStock = {},
+    OwnedSeeds = {},
+    CropCount = 0,
+    Status = "Initializing..."
+}
+
+-- Utility Functions
+local function GetFarmOwner(farm)
+    local important = farm:FindFirstChild("Important")
+    if not important then return nil end
+    
+    local data = important:FindFirstChild("Data")
+    if not data then return nil end
+    
+    local owner = data:FindFirstChild("Owner")
+    if not owner then return nil end
+    
+    return owner.Value
+end
+
+local function GetPlayerFarm()
+    local farms = GameData.Farm:GetChildren()
+    for _, farm in ipairs(farms) do
+        local owner = GetFarmOwner(farm)
+        if owner == GameData.LocalPlayer.Name then
+            return farm
+        end
+    end
+    return nil
+end
+
+local function GetSeedInfo(tool)
+    local plantName = tool:FindFirstChild("Plant_Name")
+    local count = tool:FindFirstChild("Numbers")
+    
+    if not plantName or not count then
+        return nil, 0
+    end
+    
+    return plantName.Value, count.Value
+end
+
+local function CollectSeeds(parent, seedTable)
+    for _, tool in ipairs(parent:GetChildren()) do
+        if tool:IsA("Tool") then
+            local name, count = GetSeedInfo(tool)
+            if name and count then
+                seedTable[name] = {
+                    Count = count,
+                    Tool = tool
+                }
+            end
+        end
+    end
+end
+
+local function GetOwnedSeeds()
+    GameData.OwnedSeeds = {}
+    
+    if GameData.Character then
+        CollectSeeds(GameData.Character, GameData.OwnedSeeds)
+    end
+    
+    if Backpack then
+        CollectSeeds(Backpack, GameData.OwnedSeeds)
+    end
+    
+    return GameData.OwnedSeeds
+end
+
+local function GetCropCount()
+    local count = 0
+    local character = GameData.Character
+    local backpack = Backpack
+    
+    if character then
+        for _, tool in ipairs(character:GetChildren()) do
+            if tool:IsA("Tool") and tool:FindFirstChild("Item_String") then
+                count = count + 1
+            end
+        end
+    end
+    
+    if backpack then
+        for _, tool in ipairs(backpack:GetChildren()) do
+            if tool:IsA("Tool") and tool:FindFirstChild("Item_String") then
+                count = count + 1
+            end
+        end
+    end
+    
+    return count
+end
+
+local function GetSeedStock(ignoreNoStock)
+    local seedShop = PlayerGui:FindFirstChild("Seed_Shop")
+    if not seedShop then return {} end
+    
+    local items = seedShop:FindFirstChild("Blueberry", true)
+    if not items then return {} end
+    items = items.Parent
+    
+    local newList = {}
+    for _, item in ipairs(items:GetChildren()) do
+        local mainFrame = item:FindFirstChild("Main_Frame")
+        if not mainFrame then continue end
+        
+        local stockText = mainFrame:FindFirstChild("Stock_Text")
+        if not stockText then continue end
+        local stockCount = tonumber(stockText.Text:match("%d+")) or 0
+        
+        if ignoreNoStock and stockCount <= 0 then continue end
+        GameData.SeedStock[item.Name] = stockCount
+        newList[item.Name] = stockCount
+    end
+    
+    return ignoreNoStock and newList or GameData.SeedStock
+end
+
+local function GetArea(basePart)
+    local center = basePart:GetPivot()
+    local size = basePart.Size
+    
+    local x1 = math.ceil(center.X - (size.X / 2))
+    local z1 = math.ceil(center.Z - (size.Z / 2))
+    local x2 = math.floor(center.X + (size.X / 2))
+    local z2 = math.floor(center.Z + (size.Z / 2))
+    
+    return x1, z1, x2, z2
+end
+
+local function GetRandomFarmPoint()
+    if not GameData.MyFarm then return Vector3.new(0, 4, 0) end
+    
+    local important = GameData.MyFarm:FindFirstChild("Important")
+    if not important then return Vector3.new(0, 4, 0) end
+    
+    local plantLocations = important:FindFirstChild("Plant_Locations")
+    if not plantLocations then return Vector3.new(0, 4, 0) end
+    
+    local farmLands = plantLocations:GetChildren()
+    if #farmLands == 0 then return Vector3.new(0, 4, 0) end
+    
+    local farmLand = farmLands[math.random(1, #farmLands)]
+    local x1, z1, x2, z2 = GetArea(farmLand)
+    local x = math.random(x1, x2)
+    local z = math.random(z1, z2)
+    
+    return Vector3.new(x, 4, z)
+end
+
+-- Core Game Functions
+local function PlantSeed(position, seedName)
+    local success, err = pcall(function()
+        if not GameData.OwnedSeeds[seedName] or GameData.OwnedSeeds[seedName].Count <= 0 then
+            return false
+        end
+        local tool = GameData.OwnedSeeds[seedName].Tool
+        if tool.Parent == Backpack and GameData.Character then
+            GameData.Character.Humanoid:EquipTool(tool)
+        end
+        GameData.GameEvents.Plant_RE:FireServer(position, seedName)
+        return true
+    end)
+    
+    if not success then
+        warn("Failed to plant seed: " .. tostring(err))
+        return false
+    end
+    return success
+end
+
+local function AutoPlantLoop()
+    if not GameConfig.AutoPlant or not GameData.MyFarm then return end
+    local seedName = GameConfig.SelectedSeed
+    if GameConfig.PlantRandom then
+        local seeds = {}
+        for name, _ in pairs(GameData.OwnedSeeds) do
+            table.insert(seeds, name)
+        end
+        seedName = seeds[math.random(1, #seeds)]
+    end
+    if seedName and GameData.OwnedSeeds[seedName] and GameData.OwnedSeeds[seedName].Count > 0 then
+        local important = GameData.MyFarm:FindFirstChild("Important")
+        if not important then return end
+        local plantLocations = important:FindFirstChild("Plant_Locations")
+        if not plantLocations then return end
+        local dirt = plantLocations:FindFirstChildOfClass("Part")
+        if not dirt then return end
+        local x1, z1, x2, z2 = GetArea(dirt)
+        
+        if GameConfig.PlantRandom then
+            local position = GetRandomFarmPoint()
+            if PlantSeed(position, seedName) then
+                GameData.OwnedSeeds[seedName].Count = GameData.OwnedSeeds[seedName].Count - 1
+            end
+        else
+            for x = x1, x2 do
+                for z = z1, z2 do
+                    if not GameConfig.AutoPlant or not GameData.OwnedSeeds[seedName] or GameData.OwnedSeeds[seedName].Count <= 0 then
+                        return
+                    end
+                    local position = Vector3.new(x, 0.13, z)
+                    if PlantSeed(position, seedName) then
+                        GameData.OwnedSeeds[seedName].Count = GameData.OwnedSeeds[seedName].Count - 1
+                    end
+                    wait(GameConfig.PlantDelay)
+                end
+            end
+        end
+    end
+end
+
+local function HarvestPlant(plant)
+    local prompt = plant:FindFirstChild("ProximityPrompt", true)
+    if prompt and prompt.Enabled then
+        SafeFireProximityPrompt(prompt)
+    end
+end
+
+local function GetHarvestablePlants()
+    local plants = {}
+    if not GameData.MyFarm then return plants end
+    local important = GameData.MyFarm:FindFirstChild("Important")
+    if not important then return plants end
+    local plantsPhysical = important:FindFirstChild("Plants_Physical")
+    if not plantsPhysical then return plants end
+    
+    local character = GameData.Character
+    if not character then return plants end
+    local playerPosition = character:GetPivot().Position
+    
+    for _, plant in ipairs(plantsPhysical:GetChildren()) do
+        local fruits = plant:FindFirstChild("Fruits")
+        if fruits then
+            for _, fruit in ipairs(fruits:GetChildren()) do
+                local variant = fruit:FindFirstChild("Variant")
+                local variantValue = variant and variant.Value or "Normal"
+                if not GameConfig.HarvestIgnores[variantValue] then
+                    local prompt = fruit:FindFirstChild("ProximityPrompt", true)
+                    if prompt and prompt.Enabled then
+                        local distance = (playerPosition - fruit:GetPivot().Position).Magnitude
+                        if distance <= 15 then
+                            table.insert(plants, fruit)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return plants
+end
+
+local function AutoHarvest()
+    if not GameConfig.AutoHarvest or not GameData.MyFarm then return end
+    local plants = GetHarvestablePlants()
+    for _, plant in ipairs(plants) do
+        HarvestPlant(plant)
+        wait(GameConfig.HarvestDelay)
+    end
+end
+
+local function SellInventory()
+    if not GameData.Character then return end
+    local previous = GameData.Character:GetPivot()
+    local previousSheckles = ShecklesCount.Value
+    local isSelling = true
+    
+    GameData.Character:PivotTo(CFrame.new(62, 4, -26))
+    while wait() do
+        if ShecklesCount.Value ~= previousSheckles then break end
+        GameData.GameEvents.Sell_Inventory:FireServer()
+    end
+    GameData.Character:PivotTo(previous)
+    wait(0.2)
+    isSelling = false
+end
+
+local function AutoSellCheck()
+    if not GameConfig.AutoSell then return end
+    local cropCount = GetCropCount()
+    if cropCount >= GameConfig.SellThreshold then
+        SellInventory()
+    end
+end
+
+local function BuySeed(seed)
+    local success, err = pcall(function()
+        GameData.GameEvents.BuySeedStock:FireServer(seed)
+    end)
+    if not success then
+        warn("Failed to buy seed: " .. tostring(err))
+    end
+end
+
+local function BuyAllSelectedSeeds()
+    if not GameConfig.SelectedBuySeed then return end
+    local stock = GameData.SeedStock[GameConfig.SelectedBuySeed] or 0
+    for i = 1, stock do
+        BuySeed(GameConfig.SelectedBuySeed)
+        wait(0.1)
+    end
+end
+
+local function AutoBuy()
+    if not GameConfig.AutoBuy or not GameConfig.SelectedBuySeed then return end
+    BuySeed(GameConfig.SelectedBuySeed)
+end
+
+local function AutoWalkLoop()
+    if not GameConfig.AutoWalk or not GameData.Character or not GameData.Character:FindFirstChild("Humanoid") or isSelling then return end
+    local humanoid = GameData.Character.Humanoid
+    local plants = GetHarvestablePlants()
+    local doRandom = GameConfig.AutoWalkAllowRandom and (#plants == 0 or math.random(1, 3) == 2)
+    
+    if doRandom then
+        humanoid:MoveTo(GetRandomFarmPoint())
+    else
+        for _, plant in ipairs(plants) do
+            humanoid:MoveTo(plant:GetPivot().Position)
+            wait(GameConfig.WalkDelay)
+        end
+    end
+end
+
+local function ToggleNoClip(state)
+    if state then
+        RunService:BindToRenderStep("NoClip", Enum.RenderPriority.Character.Value, function()
+            if GameData.Character then
+                for _, part in ipairs(GameData.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        RunService:UnbindFromRenderStep("NoClip")
+        if GameData.Character then
+            for _, part in ipairs(GameData.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+end
+
+-- UI Setup and Main Loop
+local function Initialize()
+    GameData.Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    GameData.MyFarm = GetPlayerFarm()
+    GameData.OwnedSeeds = GetOwnedSeeds()
+    GameData.CropCount = GetCropCount()
+    
+    LocalPlayer.CharacterAdded:Connect(function(character)
+        GameData.Character = character
+        if GameConfig.NoClip then
+            ToggleNoClip(true)
+        end
+    end)
+    
+    GameData.Farm.ChildAdded:Connect(function(child)
+        if GetFarmOwner(child) == LocalPlayer.Name then
+            GameData.MyFarm = child
+        end
+    end)
+    
+    local ScreenGui, ScrollingFrame = CreateModernUI()
+    
+    -- Auto-Plant Section
+    local PlantSection, PlantContent = CreateSection(ScrollingFrame, "Auto-Plant", "🥕")
+    local seedOptions = {}
+    for seed, _ in pairs(GetOwnedSeeds()) do
+        table.insert(seedOptions, seed)
+    end
+    CreateDropdown(PlantContent, "Select Seed", seedOptions, function(option)
+        GameConfig.SelectedSeed = option
+    end)
+    CreateToggle(PlantContent, "Auto Plant", function(state)
+        GameConfig.AutoPlant = state
+    end)
+    CreateToggle(PlantContent, "Plant Random Points", function(state)
+        GameConfig.PlantRandom = state
+    end)
+    CreateButton(PlantContent, "Plant All", AutoPlantLoop)
+    CreateSlider(PlantContent, "Plant Delay", 0.1, 2, GameConfig.PlantDelay, function(value)
+        GameConfig.PlantDelay = value
+    end)
+    
+    -- Auto-Harvest Section
+    local HarvestSection, HarvestContent = CreateSection(ScrollingFrame, "Auto-Harvest", "🚜")
+    CreateToggle(HarvestContent, "Auto Harvest", function(state)
+        GameConfig.AutoHarvest = state
+    end)
+    for cropType, _ in pairs(GameConfig.HarvestIgnores) do
+        CreateToggle(HarvestContent, "Ignore " .. cropType, function(state)
+            GameConfig.HarvestIgnores[cropType] = state
+        end)
+    end
+    CreateSlider(HarvestContent, "Harvest Delay", 0.1, 2, GameConfig.HarvestDelay, function(value)
+        GameConfig.HarvestDelay = value
+    end)
+    
+    -- Auto-Buy Section
+    local BuySection, BuyContent = CreateSection(ScrollingFrame, "Auto-Buy", "🥕")
+    local stockOptions = {}
+    for seed, _ in pairs(GetSeedStock(true)) do
+        table.insert(stockOptions, seed)
+    end
+    CreateDropdown(BuyContent, "Buy Seed", stockOptions, function(option)
+        GameConfig.SelectedBuySeed = option
+    end)
+    CreateToggle(BuyContent, "Auto Buy", function(state)
+        GameConfig.AutoBuy = state
+    end)
+    CreateButton(BuyContent, "Buy All", BuyAllSelectedSeeds)
+    
+    -- Auto-Sell Section
+    local SellSection, SellContent = CreateSection(ScrollingFrame, "Auto-Sell", "💰")
+    CreateButton(SellContent, "Sell Inventory", SellInventory)
+    CreateToggle(SellContent, "Auto Sell", function(state)
+        GameConfig.AutoSell = state
+    end)
+    CreateSlider(SellContent, "Sell Threshold", 1, 199, GameConfig.SellThreshold, function(value)
+        GameConfig.SellThreshold = value
+    end)
+    
+    -- Auto-Walk Section
+    local WalkSection, WalkContent = CreateSection(ScrollingFrame, "Auto-Walk", "🚶")
+    CreateToggle(WalkContent, "Auto Walk", function(state)
+        GameConfig.AutoWalk = state
+    end)
+    CreateToggle(WalkContent, "Allow Random Points", function(state)
+        GameConfig.AutoWalkAllowRandom = state
+    end)
+    CreateToggle(WalkContent, "NoClip", function(state)
+        GameConfig.NoClip = state
+        ToggleNoClip(state)
+    end)
+    CreateSlider(WalkContent, "Walk Delay", 1, 120, GameConfig.WalkDelay, function(value)
+        GameConfig.WalkDelay = value
+    end)
+    
+    -- Main Loops
+    coroutine.wrap(function()
+        while wait(0.01) do
+            GetOwnedSeeds()
+            GetSeedStock()
+            if GameConfig.AutoPlant then AutoPlantLoop() end
+            if GameConfig.AutoHarvest then AutoHarvest() end
+            if GameConfig.AutoSell then AutoSellCheck() end
+            if GameConfig.AutoBuy then AutoBuy() end
+            if GameConfig.AutoWalk then AutoWalkLoop() end
+        end
+    end)()
+end
+
+Initialize()
