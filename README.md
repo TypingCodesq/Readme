@@ -1,13 +1,13 @@
-# 👋 Hi there, I'm CodesTyping!
+# 👋 Hi there, I'm TypingCodesq!
 
-![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%2336BCF7&lines=Zero+API!;I'm+CodesTyping!)
+![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%2336BCF7&lines=lo+op!;I'm+TypingCodesq!)
 
 <p style="text-align: center;">
   <span class="animated-text">I love building APIs and coding in Python, JavaScript, Java, and TypeScript!</span>
 </p>
 
 ## 🚀 About Me
-- 💻 Working on zero api.
+- 💻.
 - 🌱 All you need is love.
 
 ## 🛠️ Languages and Tools
@@ -24,8 +24,5 @@
 ![VS Code](https://img.shields.io/badge/VS%20Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 
-## 📈 GitHub Stats
-![CodesTyping's GitHub stats](https://github-readme-stats.vercel.app/api?username=CodesTyping&show_icons=true&theme=radical)
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=CodesTyping&layout=compact&theme=radical)
 
 
