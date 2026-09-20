@@ -1,6 +1,6 @@
 # 👋 Hi there, I'm TypingCodesq!
 
-![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%2336BCF7&lines=lo+op!;I'm+TypingCodesq!)
+![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%2336BCF7&lines=loop!;I'm+TypingCodesq!)
 
 <p style="text-align: center;">
   <span class="animated-text">I love building APIs and coding in Python, JavaScript, Java, and TypeScript!</span>
